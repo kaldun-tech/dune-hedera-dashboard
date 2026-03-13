@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(tree:*)",
+      "Bash(git -C /home/kaldun/projects/dune-hedera-dashboard log --oneline -10)",
+      "Bash(git -C /home/kaldun/projects/dune-hedera-dashboard show d813950 --stat)",
+      "Bash(git -C /home/kaldun/projects/dune-hedera-dashboard config:*)",
+      "Bash(git -C /home/kaldun/projects/dune-hedera-dashboard show d813950)",
+      "Bash(claude mcp add:*)"
+    ]
+  }
+}
