@@ -11,7 +11,8 @@
       "mcp__dune__searchTables",
       "mcp__dune__searchDocs",
       "WebFetch(domain:mainnet-public.mirrornode.hedera.com)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(ls:*)"
     ]
   }
 }

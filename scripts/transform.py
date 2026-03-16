@@ -16,17 +16,15 @@ def parse_consensus_timestamp(ts: str) -> datetime:
     return datetime.utcfromtimestamp(seconds)
 
 
-def load_transactions_jsonl(filepath: str) -> list[dict]:
-    """Load transactions from JSONL file."""
-    transactions = []
+def stream_jsonl(filepath: str):
+    """Stream records from JSONL file one at a time (memory efficient)."""
     with open(filepath, "r") as f:
         for line in f:
             if line.strip():
-                transactions.append(json.loads(line))
-    return transactions
+                yield json.loads(line)
 
 
-def aggregate_daily_transactions(transactions: list[dict]) -> pd.DataFrame:
+def aggregate_daily_transactions(filepath: str) -> pd.DataFrame:
     """
     Aggregate transactions into daily stats.
 
@@ -58,7 +56,11 @@ def aggregate_daily_transactions(transactions: list[dict]) -> pd.DataFrame:
         "failure_count": 0,
     })
 
-    for tx in transactions:
+    tx_count = 0
+    for tx in stream_jsonl(filepath):
+        tx_count += 1
+        if tx_count % 1_000_000 == 0:
+            print(f"  Processed {tx_count:,} transactions...")
         # Parse date
         ts = tx.get("consensus_timestamp", "")
         if not ts:
@@ -115,10 +117,11 @@ def aggregate_daily_transactions(transactions: list[dict]) -> pd.DataFrame:
             "failure_count": stats["failure_count"],
         })
 
+    print(f"  Total processed: {tx_count:,} transactions")
     return pd.DataFrame(rows)
 
 
-def aggregate_daily_hcs(messages: list[dict]) -> pd.DataFrame:
+def aggregate_daily_hcs(filepath: str) -> pd.DataFrame:
     """
     Aggregate HCS messages into daily stats.
 
@@ -133,7 +136,9 @@ def aggregate_daily_hcs(messages: list[dict]) -> pd.DataFrame:
         "topics": set(),
     })
 
-    for msg in messages:
+    msg_count = 0
+    for msg in stream_jsonl(filepath):
+        msg_count += 1
         ts = msg.get("consensus_timestamp", "")
         if not ts:
             continue
@@ -168,12 +173,9 @@ def transform_transactions(
     input_path = Path(DATA_DIR) / input_file
     output_path = Path(DATA_DIR) / output_file
 
-    print(f"Loading transactions from {input_path}...")
-    transactions = load_transactions_jsonl(input_path)
-    print(f"Loaded {len(transactions)} transactions")
-
-    print("Aggregating daily stats...")
-    df = aggregate_daily_transactions(transactions)
+    print(f"Streaming transactions from {input_path}...")
+    print("Aggregating daily stats (streaming mode)...")
+    df = aggregate_daily_transactions(str(input_path))
     print(f"Generated {len(df)} daily records")
 
     df.to_csv(output_path, index=False)
@@ -200,12 +202,9 @@ def transform_hcs_messages(
         print(f"No HCS data found at {input_path}")
         return None
 
-    print(f"Loading HCS messages from {input_path}...")
-    messages = load_transactions_jsonl(input_path)
-    print(f"Loaded {len(messages)} messages")
-
-    print("Aggregating daily HCS stats...")
-    df = aggregate_daily_hcs(messages)
+    print(f"Streaming HCS messages from {input_path}...")
+    print("Aggregating daily HCS stats (streaming mode)...")
+    df = aggregate_daily_hcs(str(input_path))
     print(f"Generated {len(df)} daily records")
 
     df.to_csv(output_path, index=False)

@@ -1,16 +1,29 @@
 -- Transaction Type Breakdown
 --
--- Purpose: Show distribution of transaction types (crypto transfer, HCS, token, smart contract)
--- Visualization: Pie chart or horizontal bar chart
---
--- TODO: Verify transaction_type column name and enum values from schema exploration
--- Expected columns: tx_type, tx_count, percentage
+-- Purpose: Show distribution of transaction types over time
+-- Visualization: Stacked area chart (by date) or pie chart (totals)
+-- Table: dune.tsmereka.dataset_hedera_daily_stats (pre-aggregated from Hedera Mirror Node)
 
+-- Daily breakdown (for stacked area chart)
 SELECT
-    transaction_type AS tx_type,
-    COUNT(*) AS tx_count,
-    COUNT(*) * 100.0 / SUM(COUNT(*)) OVER () AS percentage
-FROM hedera.transactions
-WHERE block_time >= NOW() - INTERVAL '90 days'
-GROUP BY 1
-ORDER BY 2 DESC
+    date,
+    tx_type_crypto,
+    tx_type_hcs,
+    tx_type_token,
+    tx_type_contract,
+    tx_type_other
+FROM dune.tsmereka.dataset_hedera_daily_stats
+ORDER BY date
+
+-- Uncomment below for total breakdown (pie chart)
+-- SELECT
+--     'Crypto Transfer' AS tx_type, SUM(tx_type_crypto) AS tx_count
+-- FROM dune.tsmereka.dataset_hedera_daily_stats
+-- UNION ALL
+-- SELECT 'HCS', SUM(tx_type_hcs) FROM dune.tsmereka.dataset_hedera_daily_stats
+-- UNION ALL
+-- SELECT 'Token', SUM(tx_type_token) FROM dune.tsmereka.dataset_hedera_daily_stats
+-- UNION ALL
+-- SELECT 'Smart Contract', SUM(tx_type_contract) FROM dune.tsmereka.dataset_hedera_daily_stats
+-- UNION ALL
+-- SELECT 'Other', SUM(tx_type_other) FROM dune.tsmereka.dataset_hedera_daily_stats

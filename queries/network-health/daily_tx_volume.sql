@@ -1,15 +1,11 @@
--- Daily Transaction Volume (90 days)
+-- Daily Transaction Volume
 --
 -- Purpose: Show total transaction count per day to visualize network activity trends
 -- Visualization: Line chart with trend line
---
--- TODO: Verify table name and column names from Dune schema exploration
--- Expected columns: date, tx_count
+-- Table: dune.tsmereka.dataset_hedera_daily_stats (pre-aggregated from Hedera Mirror Node)
 
 SELECT
-    DATE_TRUNC('day', block_time) AS date,
-    COUNT(*) AS tx_count
-FROM hedera.transactions
-WHERE block_time >= NOW() - INTERVAL '90 days'
-GROUP BY 1
-ORDER BY 1
+    date,
+    tx_count
+FROM dune.tsmereka.dataset_hedera_daily_stats
+ORDER BY date
