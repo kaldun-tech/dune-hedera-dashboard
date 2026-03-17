@@ -21,13 +21,13 @@ from config import DUNE_API_KEY, DATA_DIR
 
 
 def run_fetch(days: int = 90, skip_hcs: bool = False):
-    """Fetch data from Hedera Mirror Node."""
+    """Fetch data from Hedera Mirror Node and aggregate on the fly."""
     print("=" * 60)
     print("STEP 1: Fetching data from Hedera Mirror Node")
     print("=" * 60)
 
-    from fetch_transactions import save_transactions_raw
-    save_transactions_raw()
+    from fetch_transactions import fetch_and_aggregate
+    fetch_and_aggregate(days=days)
 
     if not skip_hcs:
         print("\n")
@@ -41,8 +41,21 @@ def run_transform():
     print("STEP 2: Transforming data")
     print("=" * 60)
 
+    from pathlib import Path
     from transform import transform_transactions, transform_hcs_messages
-    transform_transactions()
+
+    # Skip transaction transform if already aggregated during fetch
+    stats_file = Path(DATA_DIR) / "hedera_daily_stats.csv"
+    raw_file = Path(DATA_DIR) / "transactions_raw.jsonl"
+
+    if stats_file.exists() and not raw_file.exists():
+        print("Transaction stats already aggregated during fetch, skipping transform")
+    elif raw_file.exists():
+        print("Found raw transactions, running legacy transform...")
+        transform_transactions()
+    else:
+        print("No transaction data found")
+
     transform_hcs_messages()
 
 

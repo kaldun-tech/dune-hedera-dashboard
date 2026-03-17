@@ -13,8 +13,9 @@ HEDERA_MIRROR_URL = os.getenv(
 
 # Dune API
 DUNE_API_KEY = os.getenv("DUNE_API_KEY")
-DUNE_UPLOAD_URL = "https://api.dune.com/api/v1/table/upload/csv"
-DUNE_USERNAME = os.getenv("DUNE_USERNAME", "your_username")
+# New endpoint (old /v1/table/upload/csv was deprecated March 2026)
+DUNE_UPLOAD_URL = "https://api.dune.com/api/v1/uploads/csv"
+DUNE_USERNAME = os.getenv("DUNE_USERNAME")
 
 # Data settings
 DAYS_TO_FETCH = 90

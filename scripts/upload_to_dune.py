@@ -18,7 +18,7 @@ def upload_csv_to_dune(
 
     Args:
         csv_path: Path to the CSV file
-        table_name: Name for the table (will be prefixed with dune.<username>.)
+        table_name: Name for the table (Dune will prefix with dataset_)
         description: Optional description for the table
 
     Returns:
@@ -29,6 +29,11 @@ def upload_csv_to_dune(
             "DUNE_API_KEY not set. Add it to .env or set environment variable."
         )
 
+    if not DUNE_USERNAME:
+        raise ValueError(
+            "DUNE_USERNAME not set. Add it to .env or set environment variable."
+        )
+
     csv_path = Path(csv_path)
     if not csv_path.exists():
         raise FileNotFoundError(f"CSV file not found: {csv_path}")
@@ -37,7 +42,7 @@ def upload_csv_to_dune(
     with open(csv_path, "r") as f:
         csv_content = f.read()
 
-    # Prepare request
+    # Prepare request (new /v1/uploads/csv endpoint)
     headers = {
         "X-Dune-Api-Key": DUNE_API_KEY,
         "Content-Type": "application/json",
@@ -46,12 +51,13 @@ def upload_csv_to_dune(
     payload = {
         "table_name": table_name,
         "data": csv_content,
+        "is_private": False,
     }
 
     if description:
         payload["description"] = description
 
-    print(f"Uploading {csv_path.name} to dune.{DUNE_USERNAME}.{table_name}...")
+    print(f"Uploading {csv_path.name} to dune.{DUNE_USERNAME}.dataset_{table_name}...")
 
     response = requests.post(
         DUNE_UPLOAD_URL,
@@ -60,12 +66,19 @@ def upload_csv_to_dune(
         timeout=120,
     )
 
-    if response.status_code == 200:
-        print(f"Successfully uploaded to dune.{DUNE_USERNAME}.{table_name}")
+    if response.status_code in (200, 201):
+        print(f"Successfully uploaded to dune.{DUNE_USERNAME}.dataset_{table_name}")
         return response.json()
     else:
         print(f"Upload failed: {response.status_code}")
         print(response.text)
+        # Try to provide helpful error info
+        try:
+            error_detail = response.json()
+            if "error" in error_detail:
+                print(f"Error detail: {error_detail['error']}")
+        except Exception:
+            pass
         response.raise_for_status()
 
 
@@ -110,6 +123,11 @@ def main():
         print("Set it in .env file or as environment variable")
         sys.exit(1)
 
+    if not DUNE_USERNAME:
+        print("Error: DUNE_USERNAME not set")
+        print("Set it in .env file or as environment variable")
+        sys.exit(1)
+
     print(f"Uploading to Dune account: {DUNE_USERNAME}")
     print("-" * 50)
 
@@ -132,8 +150,8 @@ def main():
     print("-" * 50)
     print("Upload complete!")
     print(f"\nQuery your data with:")
-    print(f"  SELECT * FROM dune.{DUNE_USERNAME}.hedera_daily_stats")
-    print(f"  SELECT * FROM dune.{DUNE_USERNAME}.hedera_hcs_daily")
+    print(f"  SELECT * FROM dune.{DUNE_USERNAME}.dataset_hedera_daily_stats")
+    print(f"  SELECT * FROM dune.{DUNE_USERNAME}.dataset_hedera_hcs_daily")
 
 
 if __name__ == "__main__":

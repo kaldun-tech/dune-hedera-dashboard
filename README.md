@@ -30,14 +30,16 @@ docs/
 
 ## Status
 
-- [ ] Phase 1: Schema exploration
-- [ ] Phase 2: Query development
-- [ ] Phase 3: Dashboard build
-- [ ] Phase 4: Publish & share
+- [x] Phase 1: ETL pipeline development
+- [x] Phase 2: Data import & upload
+- [x] Phase 3: Dashboard build
+- [ ] Phase 4: Automation (GitHub Actions)
+- [ ] Phase 5: Publish & share
 
 See [PLAN.md](PLAN.md) for detailed build plan.
 
 ## Links
 
+- [Live Dashboard on Dune](https://dune.com/tsmereka_team_70e514cb/hedera-daily-transaction-volume)
 - [Dune Docs](https://docs.dune.com)
-- Dashboard: *(not yet published)*
+- [Hedera Mirror Node API](https://docs.hedera.com/hedera/sdks-and-apis/rest-api)

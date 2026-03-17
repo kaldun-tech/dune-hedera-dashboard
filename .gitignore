@@ -36,3 +36,8 @@ go.work.sum
 # OS
 .DS_Store
 Thumbs.db
+
+# Draft content (not for repo)
+TODO.md
+docs/blog-post.md
+docs/social-posts.md
