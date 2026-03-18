@@ -18,7 +18,12 @@
       "Bash(python -m py_compile:*)",
       "Bash(python3:*)",
       "Bash(gh run view:*)",
-      "Bash(gh api:*)"
+      "Bash(gh api:*)",
+      "Bash(gh cache list:*)",
+      "Bash(gh run list:*)",
+      "Bash(git pull:*)",
+      "Bash(gh run download:*)",
+      "WebFetch(domain:github.com)"
     ]
   }
 }

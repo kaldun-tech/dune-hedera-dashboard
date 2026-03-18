@@ -76,7 +76,19 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/*.csv data/.fetch_state.json data/.hcs_fetch_state.json 2>/dev/null || true
+          # Debug: show what files exist and their status
+          echo "=== Files in data directory ==="
+          ls -la data/ || echo "data/ directory not found"
+          echo "=== Git status ==="
+          git status --short
+          # Add data files (use -f to add even if in .gitignore)
+          git add -f data/hedera_daily_stats.csv || true
+          git add -f data/hcs_daily_stats.csv 2>/dev/null || true
+          git add -f data/.fetch_state.json 2>/dev/null || true
+          git add -f data/.hcs_fetch_state.json 2>/dev/null || true
+          echo "=== Staged changes ==="
+          git diff --staged --stat || echo "No staged changes"
+          # Commit if there are changes
           git diff --staged --quiet || git commit -m "Update dashboard data $(date -u +%Y-%m-%d)"
           git push
 
