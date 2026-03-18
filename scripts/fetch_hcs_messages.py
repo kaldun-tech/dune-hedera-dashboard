@@ -18,8 +18,8 @@ from config import (
     REQUEST_TIMEOUT,
 )
 
-# Default max runtime in seconds (50 minutes, leaves 10 min buffer for 1-hour timeout)
-DEFAULT_MAX_RUNTIME = 50 * 60
+# Default max runtime in seconds (45 minutes, leaves 15 min buffer for 1-hour timeout)
+DEFAULT_MAX_RUNTIME = 45 * 60
 
 # State file for incremental fetching
 HCS_STATE_FILE = Path(DATA_DIR) / ".hcs_fetch_state.json"

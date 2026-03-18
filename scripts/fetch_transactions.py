@@ -10,8 +10,8 @@ from pathlib import Path
 import requests
 from tqdm import tqdm
 
-# Default max runtime in seconds (50 minutes, leaves 10 min buffer for 1-hour timeout)
-DEFAULT_MAX_RUNTIME = 50 * 60
+# Default max runtime in seconds (45 minutes, leaves 15 min buffer for 1-hour timeout)
+DEFAULT_MAX_RUNTIME = 45 * 60
 
 from config import (
     HEDERA_MIRROR_URL,

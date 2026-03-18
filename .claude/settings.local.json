@@ -16,7 +16,9 @@
       "WebFetch(domain:dune.com)",
       "WebFetch(domain:docs.dune.com)",
       "Bash(python -m py_compile:*)",
-      "Bash(python3:*)"
+      "Bash(python3:*)",
+      "Bash(gh run view:*)",
+      "Bash(gh api:*)"
     ]
   }
 }
