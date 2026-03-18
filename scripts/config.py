@@ -18,7 +18,7 @@ DUNE_UPLOAD_URL = "https://api.dune.com/api/v1/uploads/csv"
 DUNE_USERNAME = os.getenv("DUNE_USERNAME")
 
 # Data settings
-DAYS_TO_FETCH = 90
+DAYS_TO_FETCH = 30
 DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
 
 # Rate limiting

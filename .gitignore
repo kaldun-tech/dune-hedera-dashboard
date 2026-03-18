@@ -13,8 +13,10 @@ env/
 
 # Data files (raw data can be large)
 data/*.jsonl
-data/*.csv
+data/.fetch_state.json
 !data/.gitkeep
+!data/hedera_daily_stats.csv
+!data/hcs_daily_stats.csv
 
 # Go (if applicable)
 *.exe

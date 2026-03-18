@@ -1,0 +1,2 @@
+date,tx_count,tx_type_crypto,tx_type_hcs,tx_type_token,tx_type_contract,tx_type_other,unique_accounts,total_fees_hbar,avg_fee_hbar,success_count,failure_count
+2026-03-17,281403,180730,35263,3411,59778,2221,4230,5133.0826,0.01824104,271217,10186

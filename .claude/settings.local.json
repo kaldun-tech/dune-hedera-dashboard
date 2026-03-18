@@ -14,7 +14,9 @@
       "WebSearch",
       "Bash(ls:*)",
       "WebFetch(domain:dune.com)",
-      "WebFetch(domain:docs.dune.com)"
+      "WebFetch(domain:docs.dune.com)",
+      "Bash(python -m py_compile:*)",
+      "Bash(python3:*)"
     ]
   }
 }
