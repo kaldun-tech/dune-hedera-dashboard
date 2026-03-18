@@ -17,6 +17,10 @@ on:
         default: 'false'
         type: boolean
 
+env:
+  # Opt into Node.js 24 for GitHub Actions (Node.js 20 deprecated June 2026)
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   update-dashboard:
     runs-on: ubuntu-latest
