@@ -98,11 +98,14 @@ def upload_hedera_daily_stats():
 
 
 def upload_hedera_hcs_daily():
-    """Upload hedera_hcs_daily.csv to Dune."""
-    csv_path = Path(DATA_DIR) / "hedera_hcs_daily.csv"
+    """Upload HCS daily stats to Dune."""
+    # Check for new aggregated format first, fall back to legacy
+    csv_path = Path(DATA_DIR) / "hcs_daily_stats.csv"
+    if not csv_path.exists():
+        csv_path = Path(DATA_DIR) / "hedera_hcs_daily.csv"
 
     if not csv_path.exists():
-        print(f"HCS data not found at {csv_path}, skipping...")
+        print(f"HCS data not found, skipping...")
         return None
 
     return upload_csv_to_dune(

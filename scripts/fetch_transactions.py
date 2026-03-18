@@ -10,6 +10,9 @@ from pathlib import Path
 import requests
 from tqdm import tqdm
 
+# Default max runtime in seconds (50 minutes, leaves 10 min buffer for 1-hour timeout)
+DEFAULT_MAX_RUNTIME = 50 * 60
+
 from config import (
     HEDERA_MIRROR_URL,
     DAYS_TO_FETCH,
@@ -149,12 +152,13 @@ def fetch_date_range(
     start_dt: datetime,
     end_dt: datetime,
     daily_stats: dict,
-    max_pages: int | None = None,
-) -> tuple[int, int, str | None]:
+    start_time: float | None = None,
+    max_runtime: int = DEFAULT_MAX_RUNTIME,
+) -> tuple[int, int, str | None, bool]:
     """
     Fetch transactions for a specific date range and aggregate into daily_stats.
 
-    Returns (pages_fetched, tx_count, last_next_link_if_interrupted).
+    Returns (pages_fetched, tx_count, last_next_link_if_interrupted, timed_out).
     """
     timestamp_start = f"{int(start_dt.timestamp())}.000000000"
     timestamp_end = f"{int(end_dt.timestamp())}.999999999"
@@ -240,16 +244,22 @@ def fetch_date_range(
             if not next_link:
                 break
 
-            if max_pages and page_count >= max_pages:
-                print(f"\nReached max pages ({max_pages}), will resume next run.")
-                return page_count, tx_count, next_link
+            # Check if we're approaching timeout
+            if start_time and (time.time() - start_time) >= max_runtime:
+                elapsed = int(time.time() - start_time)
+                print(f"\nApproaching timeout ({elapsed}s elapsed), stopping gracefully.")
+                return page_count, tx_count, next_link, True
 
             time.sleep(delay)
 
-    return page_count, tx_count, None
+    return page_count, tx_count, None, False
 
 
-def fetch_and_aggregate(days: int = DAYS_TO_FETCH, output_file: str = "hedera_daily_stats.csv"):
+def fetch_and_aggregate(
+    days: int = DAYS_TO_FETCH,
+    output_file: str = "hedera_daily_stats.csv",
+    max_runtime: int = DEFAULT_MAX_RUNTIME,
+):
     """
     Fetch transactions and aggregate into daily stats, with incremental support.
 
@@ -257,9 +267,12 @@ def fetch_and_aggregate(days: int = DAYS_TO_FETCH, output_file: str = "hedera_da
     - Determines which dates are missing
     - Fetches only missing date ranges
     - Merges new data with existing
+    - Stops gracefully before timeout
     - Saves state for resuming interrupted fetches
     """
+    start_time = time.time()
     print(f"Target: last {days} days of data")
+    print(f"Max runtime: {max_runtime // 60} minutes")
 
     # Load existing data
     existing_data = load_existing_stats(output_file)
@@ -303,31 +316,47 @@ def fetch_and_aggregate(days: int = DAYS_TO_FETCH, output_file: str = "hedera_da
     total_tx = 0
 
     # Fetch each missing range
+    timed_out = False
     for i, (start_dt, end_dt) in enumerate(missing_ranges):
+        # Check if we should stop before starting a new range
+        elapsed = time.time() - start_time
+        if elapsed >= max_runtime:
+            print(f"\nApproaching timeout ({int(elapsed)}s elapsed), stopping before next range.")
+            timed_out = True
+            break
+
         print(f"\nRange {i+1}/{len(missing_ranges)}: {start_dt.date()} to {end_dt.date()}")
 
-        pages, txs, interrupted_link = fetch_date_range(start_dt, end_dt, daily_stats)
+        pages, txs, interrupted_link, range_timed_out = fetch_date_range(
+            start_dt, end_dt, daily_stats, start_time, max_runtime
+        )
         total_pages += pages
         total_tx += txs
 
         # Save progress after each range
         save_progress(daily_stats, output_file)
 
-        if interrupted_link:
+        if range_timed_out or interrupted_link:
             # Save state for resuming
             save_state({
                 "interrupted_range": [start_dt.isoformat(), end_dt.isoformat()],
                 "next_link": interrupted_link,
             })
-            print(f"\nInterrupted - progress saved. Run again to continue.")
+            print(f"\nProgress saved. Run again to continue.")
+            timed_out = True
             break
 
-    print(f"\nFetched {total_tx:,} transactions across {total_pages:,} pages")
+    elapsed = int(time.time() - start_time)
+    print(f"\nFetched {total_tx:,} transactions across {total_pages:,} pages in {elapsed}s")
     print(f"Total days with data: {len(daily_stats)}")
 
-    # Clear state on successful completion
-    if STATE_FILE.exists():
-        STATE_FILE.unlink()
+    if timed_out:
+        print("Stopped gracefully before timeout - run again to continue.")
+    else:
+        # Clear state on successful completion
+        if STATE_FILE.exists():
+            STATE_FILE.unlink()
+        print("All missing dates fetched successfully.")
 
     return save_progress(daily_stats, output_file)
 

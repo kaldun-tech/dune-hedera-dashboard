@@ -31,20 +31,20 @@ def run_fetch(days: int = 30, skip_hcs: bool = False, force: bool = False):
         from pathlib import Path
         stats_file = Path(DATA_DIR) / "hedera_daily_stats.csv"
         state_file = Path(DATA_DIR) / ".fetch_state.json"
-        if stats_file.exists():
-            stats_file.unlink()
-            print("Cleared existing stats file")
-        if state_file.exists():
-            state_file.unlink()
-            print("Cleared fetch state")
+        hcs_stats_file = Path(DATA_DIR) / "hcs_daily_stats.csv"
+        hcs_state_file = Path(DATA_DIR) / ".hcs_fetch_state.json"
+        for f in [stats_file, state_file, hcs_stats_file, hcs_state_file]:
+            if f.exists():
+                f.unlink()
+                print(f"Cleared {f.name}")
 
     from fetch_transactions import fetch_and_aggregate
     fetch_and_aggregate(days=days)
 
     if not skip_hcs:
         print("\n")
-        from fetch_hcs_messages import save_hcs_messages_raw
-        save_hcs_messages_raw()
+        from fetch_hcs_messages import fetch_and_aggregate_hcs
+        fetch_and_aggregate_hcs(days=days)
 
 
 def run_transform():
@@ -68,7 +68,17 @@ def run_transform():
     else:
         print("No transaction data found")
 
-    transform_hcs_messages()
+    # Skip HCS transform if already aggregated during fetch
+    hcs_stats_file = Path(DATA_DIR) / "hcs_daily_stats.csv"
+    hcs_raw_file = Path(DATA_DIR) / "hcs_messages_raw.jsonl"
+
+    if hcs_stats_file.exists() and not hcs_raw_file.exists():
+        print("HCS stats already aggregated during fetch, skipping transform")
+    elif hcs_raw_file.exists():
+        print("Found raw HCS messages, running legacy transform...")
+        transform_hcs_messages()
+    else:
+        print("No HCS data found (or already aggregated)")
 
 
 def run_upload():
