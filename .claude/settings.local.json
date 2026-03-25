@@ -23,7 +23,9 @@
       "Bash(gh run list:*)",
       "Bash(git pull:*)",
       "Bash(gh run download:*)",
-      "WebFetch(domain:github.com)"
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:open.substack.com)",
+      "WebFetch(domain:taraskaldun.substack.com)"
     ]
   }
 }
