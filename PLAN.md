@@ -26,7 +26,7 @@ Key insight: Naive fetch-store-transform approach took 20+ hours. Streaming aggr
 ### Phase 2: Data Import ✓
 
 - Community table: `dataset_hedera_daily_stats`
-- 30-day rolling window
+- 90-day rolling window
 - Incremental updates (fetches only new data)
 
 ### Phase 3: Dashboard ✓
@@ -52,34 +52,37 @@ GitHub Actions workflow runs daily at 6 AM UTC:
 
 ## Future Work
 
-### Extend to 90 Days
+### Extend to 90 Days ✓
 
-**Scope:** Minimal — incremental fetching already handles backfill automatically.
+**Status:** Complete — pipeline will backfill on next run.
 
-Changes:
-1. `config.py:21` — Change `DAYS_TO_FETCH = 30` to `90`
-2. Run pipeline to backfill (may need multiple runs due to 45-min GitHub Actions timeout)
+Changes made:
+- [x] `config.py:21` — Changed `DAYS_TO_FETCH` from 30 to 90
+- [x] `run_pipeline.py` — Updated default days argument to 90
+- [ ] Run pipeline to backfill (may need multiple GitHub Actions runs due to 45-min timeout)
 
 **Value:** Quarterly trend visibility for investors/analysts evaluating Hedera adoption.
 
-### HCS Dashboard for Developers
+### HCS Dashboard for Developers ✓
 
-**Scope:** Most infrastructure already built. Needs queries and visualization.
+**Status:** Code complete — needs manual Dune dashboard setup.
 
-ETL pipeline status:
+ETL pipeline:
 - [x] `fetch_hcs_messages.py` — Full incremental fetch with timeout handling
 - [x] `upload_to_dune.py` — HCS upload to `dataset_hedera_hcs_daily`
-- [x] `run_pipeline.py` — Orchestration (currently disabled with `--skip-hcs`)
+- [x] `run_pipeline.py` — Orchestration ready, supports `--hcs-only` flag
+- [x] GitHub Actions — Separate workflow (`update-hcs-data.yml`) runs at 6 PM UTC
 
-Remaining work:
-1. Enable HCS in CI — Change workflow `skip_hcs` default from `true` to `false`
-2. Write Dune SQL queries:
-   - Daily HCS message volume
-   - Active topics over time
-   - Message size trends
-3. Add panels to Dune dashboard
+SQL queries (in `queries/hcs-specific/`):
+- [x] `daily_messages.sql` — Daily HCS message volume
+- [x] `active_topics.sql` — Active topics over time
+- [x] `message_size_trends.sql` — Average message payload size
 
-HCS data model (already defined):
+Remaining manual work:
+- [ ] Add HCS panels to Dune dashboard UI
+- [ ] Wait for first HCS data fetch to complete
+
+HCS data model:
 ```
 date              | Date string
 message_count     | Total HCS messages that day

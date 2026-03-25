@@ -20,7 +20,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 from config import DUNE_API_KEY, DATA_DIR
 
 
-def run_fetch(days: int = 30, skip_hcs: bool = False, force: bool = False):
+def run_fetch(days: int = 90, skip_hcs: bool = False, hcs_only: bool = False, force: bool = False):
     """Fetch data from Hedera Mirror Node and aggregate on the fly."""
     print("=" * 60)
     print("STEP 1: Fetching data from Hedera Mirror Node")
@@ -38,10 +38,11 @@ def run_fetch(days: int = 30, skip_hcs: bool = False, force: bool = False):
                 f.unlink()
                 print(f"Cleared {f.name}")
 
-    from fetch_transactions import fetch_and_aggregate
-    fetch_and_aggregate(days=days)
+    if not hcs_only:
+        from fetch_transactions import fetch_and_aggregate
+        fetch_and_aggregate(days=days)
 
-    if not skip_hcs:
+    if not skip_hcs or hcs_only:
         print("\n")
         from fetch_hcs_messages import fetch_and_aggregate_hcs
         fetch_and_aggregate_hcs(days=days)
@@ -114,12 +115,16 @@ def main():
         help="Only run upload step"
     )
     parser.add_argument(
-        "--days", type=int, default=30,
-        help="Number of days to fetch (default: 30)"
+        "--days", type=int, default=90,
+        help="Number of days to fetch (default: 90)"
     )
     parser.add_argument(
         "--skip-hcs", action="store_true",
         help="Skip HCS message fetching"
+    )
+    parser.add_argument(
+        "--hcs-only", action="store_true",
+        help="Only fetch HCS data (skip transactions)"
     )
     parser.add_argument(
         "--force", action="store_true",
@@ -135,7 +140,7 @@ def main():
     print()
 
     if args.fetch or run_all:
-        run_fetch(args.days, args.skip_hcs, args.force)
+        run_fetch(args.days, args.skip_hcs, args.hcs_only, args.force)
 
     if args.transform or run_all:
         run_transform()

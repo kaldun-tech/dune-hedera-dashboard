@@ -33,7 +33,7 @@ This project uploads aggregated daily statistics to Dune as `dataset_hedera_dail
 Data is fetched from the Hedera Mirror Node API:
 - Endpoint: `https://mainnet-public.mirrornode.hedera.com/api/v1/transactions`
 - Aggregated during fetch (no raw transaction storage)
-- 30-day rolling window, refreshed daily
+- 90-day rolling window, refreshed daily
 
 ### Transaction Type Mapping
 
@@ -46,6 +46,26 @@ Mirror Node `name` field → aggregation bucket:
 | TOKENMINT, TOKENBURN, TOKENTRANSFER, etc. | tx_type_token |
 | CONTRACTCALL, CONTRACTCREATE | tx_type_contract |
 | Everything else | tx_type_other |
+
+## Community Table: hedera_hcs_daily
+
+This project uploads aggregated HCS statistics to Dune as `dataset_hedera_hcs_daily`.
+
+### Schema
+
+| Column | Type | Description |
+|--------|------|-------------|
+| date | DATE | Message date |
+| message_count | INTEGER | Total HCS messages |
+| unique_topics | INTEGER | Distinct topic IDs with activity |
+| total_message_size | INTEGER | Sum of message payload bytes |
+
+### Data Source
+
+Data is fetched from the Hedera Mirror Node API:
+- Endpoint: `https://mainnet-public.mirrornode.hedera.com/api/v1/topics/{topicId}/messages`
+- Topics discovered via CONSENSUSSUBMITMESSAGE transactions
+- 90-day rolling window, refreshed daily
 
 ## Notes
 

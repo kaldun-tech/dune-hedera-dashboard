@@ -4,46 +4,55 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Dune Analytics dashboard for Hedera HashGraph blockchain. This project contains SQL queries and documentation for building public dashboards on Dune that visualize Hedera network health metrics.
+Dune Analytics dashboard for Hedera HashGraph blockchain. Since Dune has no native Hedera tables, this project includes a Python ETL pipeline that fetches data from the Hedera Mirror Node API and uploads it to Dune as community tables.
 
 ## Project Structure
 
 ```
+scripts/
+  config.py             # Configuration (API URLs, data window, tx type mapping)
+  fetch_transactions.py # ETL for transaction data (streaming aggregation)
+  fetch_hcs_messages.py # ETL for HCS message data
+  upload_to_dune.py     # Upload CSVs to Dune community tables
+  run_pipeline.py       # Orchestrates fetch → transform → upload
 queries/
-  network-health/     # Core dashboard queries (transaction volume, active accounts, fees)
-  hcs-specific/       # HCS-focused queries (topic activity, message volume)
-docs/
-  schema.md           # Hedera table schemas discovered on Dune
-dashboards/
-  *.json              # Dashboard configuration exports (if available from Dune)
+  network-health/       # Core dashboard queries (tx volume, accounts, fees)
+  hcs-specific/         # HCS queries (topic activity, message volume)
+data/
+  hedera_daily_stats.csv  # Aggregated transaction data
+  hcs_daily_stats.csv     # Aggregated HCS data
+.github/workflows/
+  update-dashboard.yml    # Transaction data (6 AM UTC)
+  update-hcs-data.yml     # HCS data (6 PM UTC)
 ```
-
-## Core Dashboard: Hedera Network Health
-
-Answers: "What does Hedera's network activity look like — and is it growing?"
-
-Panels:
-- Daily transaction volume (90 days)
-- HCS message activity
-- Transaction type breakdown (crypto transfers vs HCS vs token vs smart contract)
-- Active accounts (unique senders per day)
-- Fee trends (avg tx fee in HBAR)
-- HBAR price overlay (optional)
-
-## Stretch: HCS-Specific Dashboard
-
-Companion to the hiero-hcs-relay hackathon submission — tracks HCS topic activity and message volume.
 
 ## Dune Tables
 
-Primary tables to query (verify existence on Dune):
-- `hedera.transactions`
-- `hedera.consensus_messages`
+Community tables (uploaded by ETL pipeline):
+- `dune.tsmereka.dataset_hedera_daily_stats` — Daily transaction aggregates
+- `dune.tsmereka.dataset_hedera_hcs_daily` — Daily HCS message aggregates
 
-## Workflow
+## Key Commands
 
-1. Write/test queries in Dune query editor
-2. Save working queries as `.sql` files in `queries/`
-3. Document any schema discoveries in `docs/schema.md`
-4. Build visualizations in Dune UI
-5. Export dashboard config if possible
+```bash
+# Run full pipeline locally
+cd scripts && python run_pipeline.py
+
+# Fetch only (no upload)
+python run_pipeline.py --fetch
+
+# Force re-fetch all data
+python run_pipeline.py --fetch --force
+
+# Skip HCS (faster for transaction-only updates)
+python run_pipeline.py --skip-hcs
+
+# HCS only (skip transactions)
+python run_pipeline.py --hcs-only
+```
+
+## Architecture Notes
+
+- **Streaming aggregation**: The ETL aggregates during fetch to handle Hedera's high transaction volume (5M+ tx/day)
+- **Incremental fetching**: Only fetches missing date ranges, supports resumption after timeout
+- **Graceful timeout**: Stops before GitHub Actions timeout, commits progress, continues on next run
