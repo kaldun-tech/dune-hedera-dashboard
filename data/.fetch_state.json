@@ -1,7 +1,0 @@
-{
-  "interrupted_range": [
-    "2026-07-13T00:00:00",
-    "2026-07-13T23:59:59.999999"
-  ],
-  "next_link": "/api/v1/transactions?timestamp=lte:1783987199.999999999&timestamp=gt:1783906510.897761006&limit=100&order=asc"
-}
