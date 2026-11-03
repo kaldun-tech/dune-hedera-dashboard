@@ -1,0 +1,7 @@
+{
+  "interrupted_range": [
+    "2026-11-03T00:00:00",
+    "2026-11-03T23:59:59.999999"
+  ],
+  "next_link": "/api/v1/transactions?timestamp=lte:1793750399.999999999&timestamp=gt:1793707030.520675104&limit=100&order=asc"
+}
