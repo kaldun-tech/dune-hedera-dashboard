@@ -1,7 +1,7 @@
 {
   "interrupted_range": [
-    "2026-11-21T00:00:00",
-    "2026-11-21T23:59:59.999999"
+    "2026-11-22T00:00:00",
+    "2026-11-22T23:59:59.999999"
   ],
-  "next_link": "/api/v1/transactions?timestamp=lte:1795305599.999999999&timestamp=gt:1795248503.247814104&limit=100&order=asc"
+  "next_link": "/api/v1/transactions?timestamp=lte:1795391999.999999999&timestamp=gt:1795346006.902379104&limit=100&order=asc"
 }
